@@ -1,0 +1,18 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+## Logs
+logs/
+*.log
+
+## Secrets — nunca commitar
+appsettings.Production.json
+appsettings.*.local.json
+
+## EF migrations temp
+*.mdf
+*.ldf

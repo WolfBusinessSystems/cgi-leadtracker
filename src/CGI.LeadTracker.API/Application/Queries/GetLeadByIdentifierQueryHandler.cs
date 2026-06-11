@@ -1,0 +1,38 @@
+using AutoMapper;
+using CGI.LeadTracker.API.Application.Adapters;
+using CGI.LeadTracker.Domain.AggregatesModel.Lead;
+using CGI.LeadTracker.Infrastructure;
+using FluentResults;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+
+namespace CGI.LeadTracker.API.Application.Queries;
+
+public class GetLeadByIdentifierQueryHandler : IRequestHandler<GetLeadByIdentifierQuery, Result<LeadDto>>
+{
+    private readonly LeadTrackerContext _context;
+    private readonly IMapper _mapper;
+
+    public GetLeadByIdentifierQueryHandler(LeadTrackerContext context, IMapper mapper)
+    {
+        _context = context;
+        _mapper  = mapper;
+    }
+
+    public async Task<Result<LeadDto>> Handle(GetLeadByIdentifierQuery request, CancellationToken cancellationToken)
+    {
+        var lead = await _context.Leads
+            .AsNoTracking()
+            .Include(l => l.ConversionEvents)
+            .FirstOrDefaultAsync(
+                l => l.Identifier.Value == request.IdentifierValue &&
+                     l.Identifier.Type  == request.IdentifierType,
+                cancellationToken);
+
+        if (lead is null)
+            return Result.Fail<LeadDto>(
+                $"Lead com identificador '{request.IdentifierValue}' ({request.IdentifierType}) não encontrado.");
+
+        return Result.Ok(_mapper.Map<LeadDto>(lead));
+    }
+}
