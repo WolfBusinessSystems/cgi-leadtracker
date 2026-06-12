@@ -36,7 +36,8 @@ public class RdStationService : IRdStationService
 
         while (true)
         {
-            var url      = $"/v1.0/deals?page[size]=100&page[number]={page}&order[field]=updated_at&updated_at[from]={sinceStr}";
+            // URL relativa sem '/' inicial para preservar o caminho do BaseAddress
+            var url      = $"v1.0/deals?page[size]=100&page[number]={page}&order[field]=updated_at&updated_at[from]={sinceStr}";
             var response = await _http.GetFromJsonAsync<RdStationDealsResponse>(url, cancellationToken);
 
             if (response?.Deals is null || response.Deals.Count == 0) break;
@@ -60,7 +61,7 @@ public class RdStationService : IRdStationService
         CancellationToken cancellationToken = default)
     {
         var response = await _http.GetFromJsonAsync<RdStationDealItem>(
-            $"/v1.0/deals/{rdStationId}",
+            $"v1.0/deals/{rdStationId}",
             cancellationToken);
 
         return response is null ? null : MapDeal(response);

@@ -6,6 +6,7 @@ public record MetaEventData(
     string EventName,
     long EventTime,
     string EventId,
+    string Fbc,
     string HashedEmail,
     string? HashedPhone,
     string? HashedName,

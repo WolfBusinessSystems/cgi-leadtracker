@@ -31,7 +31,7 @@ public class Lead : Entity, IAggregateRoot
             UpdatedAt     = DateTime.UtcNow
         };
 
-        lead.AddDomainEvent(new LeadStageChangedDomainEvent(lead.Id, null, FunnelStage.LeadReceived));
+        lead.AddDomainEvent(new LeadStageChangedDomainEvent(lead, null, FunnelStage.LeadReceived));
         return lead;
     }
 
@@ -52,12 +52,15 @@ public class Lead : Entity, IAggregateRoot
         CurrentStage = newStage;
         UpdatedAt    = DateTime.UtcNow;
 
-        AddDomainEvent(new LeadStageChangedDomainEvent(Id, oldStage, newStage));
+        AddDomainEvent(new LeadStageChangedDomainEvent(this, oldStage, newStage));
         return Result.Ok();
     }
 
     public Result UpdatePersonalData(PersonalData personalData)
     {
+        if (PersonalData == personalData)
+            return Result.Ok();
+
         PersonalData = personalData;
         UpdatedAt    = DateTime.UtcNow;
         return Result.Ok();
@@ -78,7 +81,7 @@ public class Lead : Entity, IAggregateRoot
         ContractValue = value;
         UpdatedAt     = DateTime.UtcNow;
 
-        AddDomainEvent(new ContractValueUpdatedDomainEvent(Id, oldValue, value));
+        AddDomainEvent(new ContractValueUpdatedDomainEvent(this, oldValue, value));
         return Result.Ok();
     }
 

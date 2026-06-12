@@ -1,39 +1,42 @@
+using System.Text.Json.Serialization;
+
 namespace CGI.LeadTracker.API.Application.Adapters.RdStation;
 
-// Modelos que espelham o JSON da API do RD Station CRM v1.0
+// Modelos que espelham o JSON (snake_case) da API do RD Station CRM v1.0
 // Ajuste os nomes dos campos conforme a documentação real da sua conta
 
-public record RdStationTokenResponse(
-    string AccessToken,
-    int ExpiresIn);
-
 public record RdStationDealsResponse(
-    IReadOnlyList<RdStationDealItem> Deals,
-    RdStationPagination? Pagination);
+    [property: JsonPropertyName("deals")]      IReadOnlyList<RdStationDealItem> Deals,
+    [property: JsonPropertyName("pagination")] RdStationPagination? Pagination);
 
-public record RdStationPagination(int Total, int? NextPage);
+public record RdStationPagination(
+    [property: JsonPropertyName("total")]     int Total,
+    [property: JsonPropertyName("next_page")] int? NextPage);
 
 public record RdStationDealItem(
-    string Id,
-    string Name,
-    decimal? Amount,
-    RdStationStage? Stage,
-    IReadOnlyList<RdStationContact>? Contacts,
-    DateTime UpdatedAt);
+    [property: JsonPropertyName("id")]         string Id,
+    [property: JsonPropertyName("name")]       string Name,
+    [property: JsonPropertyName("amount")]     decimal? Amount,
+    [property: JsonPropertyName("stage")]      RdStationStage? Stage,
+    [property: JsonPropertyName("contacts")]   IReadOnlyList<RdStationContact>? Contacts,
+    [property: JsonPropertyName("updated_at")] DateTime UpdatedAt);
 
-public record RdStationStage(string Id, string Name);
+public record RdStationStage(
+    [property: JsonPropertyName("id")]   string Id,
+    [property: JsonPropertyName("name")] string Name);
 
 public record RdStationContact(
-    string Name,
-    IReadOnlyList<RdStationEmail>? Emails,
-    IReadOnlyList<RdStationPhone>? Phones,
-    IReadOnlyList<RdStationCustomField>? CustomFields);
+    [property: JsonPropertyName("name")]          string Name,
+    [property: JsonPropertyName("emails")]        IReadOnlyList<RdStationEmail>? Emails,
+    [property: JsonPropertyName("phones")]        IReadOnlyList<RdStationPhone>? Phones,
+    [property: JsonPropertyName("custom_fields")] IReadOnlyList<RdStationCustomField>? CustomFields);
 
-public record RdStationEmail(string Email);
-public record RdStationPhone(string Phone);
+public record RdStationEmail([property: JsonPropertyName("email")] string Email);
+public record RdStationPhone([property: JsonPropertyName("phone")] string Phone);
 
 public record RdStationCustomField(
-    RdStationCustomFieldDef? CustomField,
-    string? Value);
+    [property: JsonPropertyName("custom_field")] RdStationCustomFieldDef? CustomField,
+    [property: JsonPropertyName("value")]        string? Value);
 
-public record RdStationCustomFieldDef(string Label);
+public record RdStationCustomFieldDef(
+    [property: JsonPropertyName("label")] string Label);

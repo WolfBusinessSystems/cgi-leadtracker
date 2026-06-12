@@ -31,7 +31,7 @@ public class LeadSyncService : ILeadSyncService
 
     public async Task<Result> SyncAsync(CancellationToken cancellationToken = default)
     {
-        var lookbackHours = int.Parse(_configuration["RdStation:SyncLookbackHours"] ?? "24");
+        var lookbackHours = _configuration.GetValue("RdStation:SyncLookbackHours", 24);
         var since         = DateTime.UtcNow.AddHours(-lookbackHours);
 
         _logger.LogInformation("Iniciando sync com RD Station desde {Since}.", since);
@@ -160,7 +160,6 @@ public class LeadSyncService : ILeadSyncService
             if (result.IsSuccess) changed = true;
         }
 
-        _repository.Update(existing);
         await _unitOfWork.SaveEntitiesAsync(ct);
 
         if (changed)

@@ -18,7 +18,8 @@ public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, 
     {
         var name = typeof(TRequest).Name;
 
-        _logger.LogInformation("Iniciando {RequestName} {@Request}", name, request);
+        // Não loga o payload: commands carregam PII (e-mail, CPF) e credenciais (LoginCommand)
+        _logger.LogInformation("Iniciando {RequestName}", name);
         var response = await next();
         _logger.LogInformation("Concluído {RequestName}", name);
 

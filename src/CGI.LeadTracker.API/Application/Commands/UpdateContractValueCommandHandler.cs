@@ -30,7 +30,6 @@ public class UpdateContractValueCommandHandler : IRequestHandler<UpdateContractV
         if (result.IsFailed)
             return result.ToResult<LeadDto>();
 
-        _repository.Update(lead);
         await _unitOfWork.SaveEntitiesAsync(cancellationToken);
 
         return Result.Ok(_mapper.Map<LeadDto>(lead));

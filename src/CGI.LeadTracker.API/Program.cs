@@ -51,6 +51,8 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // Mantém os claims originais do JWT (sub, email, name) sem remapeamento legado
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
@@ -73,16 +75,18 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddMemoryCache();
 builder.Services.AddTransient<RdStationTokenHandler>();
 
+// BaseAddress precisa terminar em '/' para preservar o segmento de versão da URL
 builder.Services.AddHttpClient<IRdStationService, RdStationService>(client =>
-    client.BaseAddress = new Uri(builder.Configuration["RdStation:BaseUrl"]!))
+    client.BaseAddress = new Uri(builder.Configuration["RdStation:BaseUrl"]!.TrimEnd('/') + "/"))
     .AddHttpMessageHandler<RdStationTokenHandler>()
     .AddStandardResilienceHandler();
 
 builder.Services.AddHttpClient<IMetaConversionsService, MetaConversionsService>(client =>
-    client.BaseAddress = new Uri(builder.Configuration["Meta:BaseUrl"]!))
+    client.BaseAddress = new Uri(builder.Configuration["Meta:BaseUrl"]!.TrimEnd('/') + "/"))
     .AddStandardResilienceHandler();
 
 builder.Services.AddScoped<IGoogleAdsService, GoogleAdsService>();
+builder.Services.AddScoped<IConversionDispatchService, ConversionDispatchService>();
 builder.Services.AddScoped<ILeadSyncService, LeadSyncService>();
 builder.Services.AddHostedService<LeadSyncBackgroundService>();
 

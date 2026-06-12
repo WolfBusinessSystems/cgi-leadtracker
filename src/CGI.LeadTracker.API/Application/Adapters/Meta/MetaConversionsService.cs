@@ -36,17 +36,20 @@ public class MetaConversionsService : IMetaConversionsService
                     EventTime:  eventData.EventTime,
                     EventId:    eventData.EventId,
                     UserData:   new MetaUserData(
-                        Em: eventData.HashedEmail is not null ? [eventData.HashedEmail] : null,
-                        Ph: eventData.HashedPhone is not null ? [eventData.HashedPhone] : null,
-                        Fn: eventData.HashedName  is not null ? [eventData.HashedName]  : null),
+                        Em:         eventData.HashedEmail is not null ? [eventData.HashedEmail] : null,
+                        Ph:         eventData.HashedPhone is not null ? [eventData.HashedPhone] : null,
+                        Fn:         eventData.HashedName  is not null ? [eventData.HashedName]  : null,
+                        Fbc:        eventData.Fbc,
+                        ExternalId: eventData.HashedCpf   is not null ? [eventData.HashedCpf]   : null),
                     CustomData: eventData.Value is not null
                         ? new MetaCustomData(eventData.Value, eventData.Currency ?? "BRL")
                         : null)
             },
             AccessToken: accessToken);
 
+        // URL relativa sem '/' inicial — caminho absoluto descartaria o /vXX.X do BaseAddress
         var response = await _http.PostAsJsonAsync(
-            $"/{pixelId}/events",
+            $"{pixelId}/events",
             payload,
             cancellationToken);
 

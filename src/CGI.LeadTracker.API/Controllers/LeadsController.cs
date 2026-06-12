@@ -70,7 +70,8 @@ public class LeadsController : ControllerBase
             : BadRequest(result.Errors.Select(e => e.Message));
     }
 
-    /// <summary>POST /api/leads/sync — força sincronização com RD Station</summary>
+    /// <summary>POST /api/leads/sync — força sincronização com RD Station (somente Admin)</summary>
+    [Authorize(Policy = "Admin")]
     [HttpPost("sync")]
     public async Task<IActionResult> ForceSync(CancellationToken ct)
     {

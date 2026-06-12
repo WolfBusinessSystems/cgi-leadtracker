@@ -31,7 +31,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<TokenDto
         var secret            = _configuration["Auth:Secret"]!;
         var issuer            = _configuration["Auth:Issuer"]!;
         var audience          = _configuration["Auth:Audience"]!;
-        var expirationMinutes = int.Parse(_configuration["Auth:ExpirationMinutes"] ?? "480");
+        var expirationMinutes = _configuration.GetValue("Auth:ExpirationMinutes", 480);
         var expiresAt         = DateTime.UtcNow.AddMinutes(expirationMinutes);
 
         var key         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));

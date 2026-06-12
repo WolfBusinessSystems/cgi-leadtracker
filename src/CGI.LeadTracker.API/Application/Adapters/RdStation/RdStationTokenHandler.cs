@@ -22,6 +22,10 @@ public class RdStationTokenHandler : DelegatingHandler
     private const string AccessTokenCacheKey  = "rdstation_access_token";
     private const string RefreshTokenCacheKey = "rdstation_refresh_token";
 
+    // O RD Station rotaciona o refresh_token a cada uso — renovações concorrentes
+    // invalidariam o token uma da outra, então a renovação é serializada.
+    private static readonly SemaphoreSlim RefreshLock = new(1, 1);
+
     public RdStationTokenHandler(
         IHttpClientFactory factory,
         IConfiguration configuration,
@@ -48,6 +52,23 @@ public class RdStationTokenHandler : DelegatingHandler
         if (_cache.TryGetValue(AccessTokenCacheKey, out string? cached) && cached is not null)
             return cached;
 
+        await RefreshLock.WaitAsync(cancellationToken);
+        try
+        {
+            // Outra chamada pode ter renovado enquanto aguardava o lock
+            if (_cache.TryGetValue(AccessTokenCacheKey, out cached) && cached is not null)
+                return cached;
+
+            return await RefreshAccessTokenAsync(cancellationToken);
+        }
+        finally
+        {
+            RefreshLock.Release();
+        }
+    }
+
+    private async Task<string> RefreshAccessTokenAsync(CancellationToken cancellationToken)
+    {
         _logger.LogInformation("Renovando access token do RD Station via refresh_token.");
 
         // Usa o refresh_token em memória (já rotacionado) ou o do config (inicial/restart)
@@ -79,7 +100,7 @@ public class RdStationTokenHandler : DelegatingHandler
             cancellationToken: cancellationToken);
 
         // Armazena access_token com margem de 5 min antes do vencimento
-        var expiry = TimeSpan.FromSeconds(result!.ExpiresIn - 300);
+        var expiry = TimeSpan.FromSeconds(Math.Max(60, result!.ExpiresIn - 300));
         _cache.Set(AccessTokenCacheKey, result.AccessToken, expiry);
 
         // RD Station rotaciona o refresh_token — armazena o novo em memória

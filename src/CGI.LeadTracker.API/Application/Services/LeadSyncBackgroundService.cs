@@ -16,7 +16,7 @@ public class LeadSyncBackgroundService : BackgroundService
         _scopeFactory = scopeFactory;
         _logger       = logger;
 
-        var minutes = int.Parse(configuration["LeadSyncSettings:IntervalMinutes"] ?? "60");
+        var minutes = configuration.GetValue("LeadSyncSettings:IntervalMinutes", 60);
         _interval   = TimeSpan.FromMinutes(minutes);
     }
 

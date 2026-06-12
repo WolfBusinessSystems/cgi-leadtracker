@@ -16,9 +16,11 @@ public record MetaEventPayload(
     [property: JsonPropertyName("custom_data")] MetaCustomData? CustomData);
 
 public record MetaUserData(
-    [property: JsonPropertyName("em")] IReadOnlyList<string>? Em,
-    [property: JsonPropertyName("ph")] IReadOnlyList<string>? Ph,
-    [property: JsonPropertyName("fn")] IReadOnlyList<string>? Fn);
+    [property: JsonPropertyName("em")]          IReadOnlyList<string>? Em,
+    [property: JsonPropertyName("ph")]          IReadOnlyList<string>? Ph,
+    [property: JsonPropertyName("fn")]          IReadOnlyList<string>? Fn,
+    [property: JsonPropertyName("fbc")]         string? Fbc,
+    [property: JsonPropertyName("external_id")] IReadOnlyList<string>? ExternalId);
 
 public record MetaCustomData(
     [property: JsonPropertyName("value")]    decimal? Value,

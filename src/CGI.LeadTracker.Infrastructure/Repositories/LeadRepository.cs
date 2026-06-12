@@ -33,15 +33,6 @@ public class LeadRepository : ILeadRepository
                 l => l.Identifier.Value == identifierValue && l.Identifier.Type == identifierType,
                 cancellationToken);
 
-    public async Task<IReadOnlyList<Lead>> GetLeadsForSyncAsync(CancellationToken cancellationToken = default) =>
-        await _context.Leads
-            .Include(l => l.ConversionEvents)
-            .Where(l => l.CurrentStage != FunnelStage.Disqualified)
-            .ToListAsync(cancellationToken);
-
     public async Task AddAsync(Lead lead, CancellationToken cancellationToken = default) =>
         await _context.Leads.AddAsync(lead, cancellationToken);
-
-    public void Update(Lead lead) =>
-        _context.Leads.Update(lead);
 }
