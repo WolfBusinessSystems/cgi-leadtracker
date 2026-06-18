@@ -1,4 +1,3 @@
-using AutoMapper;
 using CGI.LeadTracker.API.Application.Adapters;
 using CGI.LeadTracker.Domain.AggregatesModel.Lead;
 using CGI.LeadTracker.Domain.SeedWork;
@@ -11,13 +10,11 @@ public class ReceiveLeadCommandHandler : IRequestHandler<ReceiveLeadCommand, Res
 {
     private readonly ILeadRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
 
-    public ReceiveLeadCommandHandler(ILeadRepository repository, IUnitOfWork unitOfWork, IMapper mapper)
+    public ReceiveLeadCommandHandler(ILeadRepository repository, IUnitOfWork unitOfWork)
     {
         _repository  = repository;
         _unitOfWork  = unitOfWork;
-        _mapper      = mapper;
     }
 
     public async Task<Result<LeadDto>> Handle(ReceiveLeadCommand request, CancellationToken cancellationToken)
@@ -37,6 +34,6 @@ public class ReceiveLeadCommandHandler : IRequestHandler<ReceiveLeadCommand, Res
         await _repository.AddAsync(lead, cancellationToken);
         await _unitOfWork.SaveEntitiesAsync(cancellationToken);
 
-        return Result.Ok(_mapper.Map<LeadDto>(lead));
+        return Result.Ok(LeadMapper.ToDto(lead));
     }
 }

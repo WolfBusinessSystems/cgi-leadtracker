@@ -1,4 +1,3 @@
-using AutoMapper;
 using CGI.LeadTracker.API.Application.Adapters;
 using CGI.LeadTracker.Domain.AggregatesModel.Lead;
 using CGI.LeadTracker.Domain.SeedWork;
@@ -11,13 +10,11 @@ public class AdvanceLeadStageCommandHandler : IRequestHandler<AdvanceLeadStageCo
 {
     private readonly ILeadRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
 
-    public AdvanceLeadStageCommandHandler(ILeadRepository repository, IUnitOfWork unitOfWork, IMapper mapper)
+    public AdvanceLeadStageCommandHandler(ILeadRepository repository, IUnitOfWork unitOfWork)
     {
         _repository  = repository;
         _unitOfWork  = unitOfWork;
-        _mapper      = mapper;
     }
 
     public async Task<Result<LeadDto>> Handle(AdvanceLeadStageCommand request, CancellationToken cancellationToken)
@@ -32,6 +29,6 @@ public class AdvanceLeadStageCommandHandler : IRequestHandler<AdvanceLeadStageCo
 
         await _unitOfWork.SaveEntitiesAsync(cancellationToken);
 
-        return Result.Ok(_mapper.Map<LeadDto>(lead));
+        return Result.Ok(LeadMapper.ToDto(lead));
     }
 }

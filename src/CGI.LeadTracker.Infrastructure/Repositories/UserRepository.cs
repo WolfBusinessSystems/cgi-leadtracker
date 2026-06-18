@@ -17,6 +17,11 @@ public class UserRepository : IUserRepository
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
 
+    // Rastreado (sem AsNoTracking) — usado para atualizações como troca de senha.
+    public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
+        await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+
     public async Task AddAsync(User user, CancellationToken cancellationToken = default) =>
         await _context.Users.AddAsync(user, cancellationToken);
 }

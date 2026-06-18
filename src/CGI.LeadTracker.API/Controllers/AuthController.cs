@@ -1,5 +1,6 @@
 using CGI.LeadTracker.API.Application.Commands;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CGI.LeadTracker.API.Controllers;
@@ -20,5 +21,16 @@ public class AuthController : ControllerBase
         return result.IsSuccess
             ? Ok(result.Value)
             : Unauthorized(result.Errors.Select(e => e.Message));
+    }
+
+    /// <summary>POST /api/auth/change-password — troca a senha do usuário autenticado</summary>
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command, CancellationToken ct)
+    {
+        var result = await _mediator.Send(command, ct);
+        return result.IsSuccess
+            ? Ok(new { message = "Senha alterada com sucesso." })
+            : BadRequest(result.Errors.Select(e => e.Message));
     }
 }

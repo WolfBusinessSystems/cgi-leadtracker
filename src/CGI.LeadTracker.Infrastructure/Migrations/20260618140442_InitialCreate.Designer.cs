@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CGI.LeadTracker.Infrastructure.Migrations
 {
     [DbContext(typeof(LeadTrackerContext))]
-    [Migration("20260605171138_InitialCreate")]
+    [Migration("20260618140442_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -20,46 +20,52 @@ namespace CGI.LeadTracker.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.16")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("ProductVersion", "9.0.17")
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
             modelBuilder.Entity("CGI.LeadTracker.Domain.AggregatesModel.Lead.ConversionEvent", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("char(36)");
 
                     b.Property<decimal?>("ContractValue")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("ErrorMessage")
                         .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                        .HasColumnType("varchar(2000)");
 
                     b.Property<string>("EventName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("ExternalEventId")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("varchar(500)");
 
                     b.Property<Guid>("LeadId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("char(36)");
 
-                    b.Property<int>("Platform")
-                        .HasColumnType("int");
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
-                    b.Property<int>("Stage")
-                        .HasColumnType("int");
+                    b.Property<string>("Stage")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -71,24 +77,26 @@ namespace CGI.LeadTracker.Infrastructure.Migrations
             modelBuilder.Entity("CGI.LeadTracker.Domain.AggregatesModel.Lead.Lead", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("char(36)");
 
                     b.Property<decimal?>("ContractValue")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime(6)");
 
-                    b.Property<int>("CurrentStage")
-                        .HasColumnType("int");
+                    b.Property<string>("CurrentStage")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("RdStationId")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("varchar(100)");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
@@ -96,6 +104,42 @@ namespace CGI.LeadTracker.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Leads", (string)null);
+                });
+
+            modelBuilder.Entity("CGI.LeadTracker.Domain.AggregatesModel.User.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("CGI.LeadTracker.Domain.AggregatesModel.Lead.ConversionEvent", b =>
@@ -112,16 +156,18 @@ namespace CGI.LeadTracker.Infrastructure.Migrations
                     b.OwnsOne("CGI.LeadTracker.Domain.AggregatesModel.Lead.LeadIdentifier", "Identifier", b1 =>
                         {
                             b1.Property<Guid>("LeadId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("char(36)");
 
-                            b1.Property<int>("Type")
-                                .HasColumnType("int")
+                            b1.Property<string>("Type")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("varchar(50)")
                                 .HasColumnName("IdentifierType");
 
                             b1.Property<string>("Value")
                                 .IsRequired()
                                 .HasMaxLength(500)
-                                .HasColumnType("nvarchar(500)")
+                                .HasColumnType("varchar(500)")
                                 .HasColumnName("IdentifierValue");
 
                             b1.HasKey("LeadId");
@@ -138,28 +184,28 @@ namespace CGI.LeadTracker.Infrastructure.Migrations
                     b.OwnsOne("CGI.LeadTracker.Domain.AggregatesModel.Lead.PersonalData", "PersonalData", b1 =>
                         {
                             b1.Property<Guid>("LeadId")
-                                .HasColumnType("uniqueidentifier");
+                                .HasColumnType("char(36)");
 
                             b1.Property<string>("Cpf")
                                 .HasMaxLength(20)
-                                .HasColumnType("nvarchar(20)")
+                                .HasColumnType("varchar(20)")
                                 .HasColumnName("Cpf");
 
                             b1.Property<string>("Email")
                                 .IsRequired()
                                 .HasMaxLength(200)
-                                .HasColumnType("nvarchar(200)")
+                                .HasColumnType("varchar(200)")
                                 .HasColumnName("Email");
 
                             b1.Property<string>("Name")
                                 .IsRequired()
                                 .HasMaxLength(200)
-                                .HasColumnType("nvarchar(200)")
+                                .HasColumnType("varchar(200)")
                                 .HasColumnName("Name");
 
                             b1.Property<string>("Phone")
                                 .HasMaxLength(30)
-                                .HasColumnType("nvarchar(30)")
+                                .HasColumnType("varchar(30)")
                                 .HasColumnName("Phone");
 
                             b1.HasKey("LeadId");

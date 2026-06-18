@@ -14,13 +14,19 @@ public static class InfrastructureServiceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException(
+                "ConnectionStrings:DefaultConnection não configurada. Defina via variável de ambiente " +
+                "ConnectionStrings__DefaultConnection, user-secrets (dev) ou appsettings.Production.json.");
+
         services.AddDbContext<LeadTrackerContext>(options =>
-            options.UseSqlServer(
-                configuration.GetConnectionString("DefaultConnection"),
-                sql =>
+            options.UseMySql(
+                connectionString,
+                ServerVersion.AutoDetect(connectionString),
+                mySql =>
                 {
-                    sql.EnableRetryOnFailure(3);
-                    sql.CommandTimeout(30);
+                    mySql.EnableRetryOnFailure(3);
+                    mySql.CommandTimeout(30);
                 }));
 
         services.AddScoped<ILeadRepository, LeadRepository>();

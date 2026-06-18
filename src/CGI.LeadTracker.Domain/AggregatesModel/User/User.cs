@@ -21,4 +21,14 @@ public class User : Entity, IAggregateRoot
             Role         = role,
             CreatedAt    = DateTime.UtcNow
         };
+
+    // Define um novo hash de senha. A validação (senha atual correta, política da nova
+    // senha) é responsabilidade do handler da aplicação — aqui só persiste o novo hash.
+    public void ChangePassword(string newPasswordHash)
+    {
+        if (string.IsNullOrWhiteSpace(newPasswordHash))
+            throw new ArgumentException("Hash de senha inválido.", nameof(newPasswordHash));
+
+        PasswordHash = newPasswordHash;
+    }
 }

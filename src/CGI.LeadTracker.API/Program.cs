@@ -1,16 +1,16 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using CGI.LeadTracker.API.Application.Adapters;
 using CGI.LeadTracker.API.Application.Adapters.Google;
 using CGI.LeadTracker.API.Application.Adapters.Meta;
 using CGI.LeadTracker.API.Application.Adapters.RdStation;
 using CGI.LeadTracker.API.Application.Behaviors;
 using CGI.LeadTracker.API.Application.Services;
+using CGI.LeadTracker.API.Extensions;
 using CGI.LeadTracker.API.Middleware;
 using CGI.LeadTracker.API.Services;
-using CGI.LeadTracker.Domain.AggregatesModel.User;
 using CGI.LeadTracker.Infrastructure;
 using CGI.LeadTracker.Infrastructure.Extensions;
-using CGI.LeadTracker.Infrastructure.Security;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -28,25 +28,33 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+        // Aceita/serializa enums como string ("Gclid", "ContractClosed") no JSON
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddOpenApi();
 
 // ── MediatR ──────────────────────────────────────────────────────────
 builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
-    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
-    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+    cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
-builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(Program).Assembly));
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 // ── Infraestrutura ────────────────────────────────────────────────────
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // ── Autenticação JWT ──────────────────────────────────────────────────
-var jwtSecret = builder.Configuration["Auth:Secret"]!;
+var jwtSecret = builder.Configuration["Auth:Secret"];
+if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.Length < 32 || jwtSecret.StartsWith('['))
+    throw new InvalidOperationException(
+        "Auth:Secret ausente ou inseguro. Defina um segredo de no mínimo 32 caracteres via variável de " +
+        "ambiente Auth__Secret ou appsettings.Production.json antes de iniciar a aplicação.");
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -115,20 +123,10 @@ if (app.Environment.IsDevelopment())
         options.Title = "CGI LeadTracker API";
         options.Theme = ScalarTheme.DeepSpace;
     });
-
-    // Seed: garante um admin padrão em desenvolvimento
-    using var scope       = app.Services.CreateScope();
-    var userRepo          = scope.ServiceProvider.GetRequiredService<IUserRepository>();
-    var unitOfWork        = scope.ServiceProvider.GetRequiredService<CGI.LeadTracker.Domain.SeedWork.IUnitOfWork>();
-    const string adminEmail = "admin@presenca.com.br";
-    if (await userRepo.GetByEmailAsync(adminEmail) is null)
-    {
-        var admin = User.Create("Administrador", adminEmail, PasswordHelper.Hash("Admin@123"));
-        await userRepo.AddAsync(admin);
-        await unitOfWork.SaveEntitiesAsync();
-        Log.Information("Usuário admin criado: {Email} / Admin@123", adminEmail);
-    }
 }
+
+// Aplica migrations pendentes e semeia o admin (idempotente, todos os ambientes)
+await app.InitializeDatabaseAsync();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
